@@ -4,22 +4,66 @@
             <div class="avatar_box">
                 <img src="../assets/logo.png" alt="">
             </div>
-            <el-form label-width="0px">
-                <el-form-item >
-                    <el-input></el-input>
-                </el-form-item><br><br><br>
-                <el-form-item >
-                    <el-input></el-input>
+            <!-- 用户登录表单 -->
+            <el-form ref="loginFormRef" :model="loginForm" :rules="loginFormRules" class="login_form">
+                <!-- 用户名 -->
+                <el-form-item prop="username">
+                    <el-input v-model="loginForm.username" prefix-icon="el-icon-user-solid" placeholder="请输入用户名"></el-input>
                 </el-form-item>
-                <el-button type="primary">主要按钮</el-button>
-                <el-button type="primary">主要按钮</el-button>
+                <!-- 密码 -->
+                 <el-form-item prop="password">
+                    <el-input v-model="loginForm.password" prefix-icon="el-icon-lock" type="password" placeholder="请输入密码"></el-input>
+                </el-form-item>
+                <!-- 登录，重置按钮 -->
+                <el-form-item class="btns">
+                    <el-button type="primary" @click="login">登录</el-button>
+                    <el-button type="info" @click="restloginForm">重置</el-button>
+                </el-form-item>
             </el-form>
         </div>
     </div>
 </template>
 
 <script>
-export default {}
+export default {
+  data () {
+    return {
+      loginForm: {
+        username: 'admin',
+        password: '123456'
+      },
+      loginFormRules: {
+        username: [
+          { required: true, message: '请输入登录名称', trigger: 'blur' },
+          { min: 3, max: 10, message: '长度在 3 到 10个字符', trigger: 'blur' }
+        ],
+        password: [
+          { required: true, message: '请输入密码', trigger: 'blur' },
+          { min: 3, max: 10, message: '长度在 3到 10个字符', trigger: 'blur' }
+        ]
+      }
+    }
+  },
+  methods: {
+    // 重置方法
+    restloginForm () {
+      this.$refs.loginFormRef.resetFields()
+    },
+    // 登录方法
+    login () {
+      this.$refs.loginFormRef.validate(async valid => {
+        if (!valid) return
+        const { data: res } = await this.$http.post('login', this.loginForm)
+        if (res.code !== 20000) return this.$message.error('登录失败')
+        this.$message.success('登录成功')
+        // 将后端返回的token保存到session中
+        window.sessionStorage.setItem('token', res.token)
+        // 登录成功后跳转到/home页面
+        this.$router.push('/home')
+      })
+    }
+  }
+}
 </script>
 
 <style lang="less" scoped>
@@ -47,12 +91,23 @@ export default {}
     position: absolute;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: #eee;
+    background-color: #fff;
     img {
         width: 100%;
         height: 100%;
         border-radius: 50%;
         background-color: #eee;
     }
+}
+.btns {
+    display: flex;
+    justify-content: flex-end;
+}
+.login_form {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    padding: 0 20px;
+    box-sizing: border-box;
 }
 </style>
